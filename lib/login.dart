@@ -72,19 +72,20 @@ class _MyLoginState extends State<MyLogin> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(title: const Text('Login'), backgroundColor: Colors.white, foregroundColor: Colors.black,),
       body: SingleChildScrollView(
         child: Column(
           children: [
             SizedBox(
-              height: 250,
+              height: 230,
               child: Column(
                 children: [
                   SizedBox(
-                    height: 250,
+                    height: 230,
                     width: double.infinity,
                     child: Center(
                       child: Container(
-                        margin: const EdgeInsets.only(top: 40),
+                        margin: const EdgeInsets.only(top: 0),
                         child: FadeTransition(
                           opacity: _fadeAnimation,
                           child: SvgPicture.asset(
@@ -100,19 +101,19 @@ class _MyLoginState extends State<MyLogin> with SingleTickerProviderStateMixin {
               ),
             ),
 
-            const SizedBox(height: 10),
+            // const SizedBox(height: 10),
 
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 0, 0, 30),
-              child: const Text(
-                'LogIn',
-                style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-            ),
+            // Padding(
+            //   padding: const EdgeInsets.fromLTRB(0, 0, 0, 30),
+            //   child: const Text(
+            //     'LogIn',
+            //     style: TextStyle(
+            //       fontSize: 30,
+            //       fontWeight: FontWeight.bold,
+            //       color: Colors.black87,
+            //     ),
+            //   ),
+            // ),
 
             Padding(
               padding: const EdgeInsets.fromLTRB(30, 0, 30, 10),

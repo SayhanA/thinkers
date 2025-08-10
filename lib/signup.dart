@@ -81,6 +81,11 @@ class _SignupState extends State<Signup> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Sign Up'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -93,14 +98,14 @@ class _SignupState extends State<Signup> with SingleTickerProviderStateMixin {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Text(
-                        'Sign Up',
+                        'Welcome to Thinkers',
                         style: TextStyle(
                           fontSize: 30,
                           fontWeight: FontWeight.bold,
                           color: Colors.black87,
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 40),
 
                       SignupForm(
                         onSubmit: (name, email, password) {
