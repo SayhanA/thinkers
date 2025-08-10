@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_module_1/emailVerificationSuccess.dart';
 
 class VerifyEmail extends StatefulWidget {
   final String email;
@@ -44,7 +45,12 @@ class _VerifyEmailState extends State<VerifyEmail> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Verification email resent!')),
     );
-    _startCountdown(); // restart countdown after resend
+    _startCountdown();
+    print('-------------------------------------------------------------------- Count down completed');
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => EmailVerificationSuccess()),
+    );
   }
 
   @override
