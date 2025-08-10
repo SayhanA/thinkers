@@ -3,6 +3,10 @@ import 'package:flutter_module_1/SignUpForm.dart';
 import 'package:flutter_module_1/verifyEmail.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
+
 class Signup extends StatefulWidget {
   const Signup({super.key});
 
@@ -35,12 +39,41 @@ class _SignupState extends State<Signup> with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
-  void _handleSignup() {
+  void _handleSignup() async {
     print('Name: $name, Email: $email, Password: $password');
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => VerifyEmail(email: email)),
-    );
+
+    final url = Uri.parse('https://py-auth.onrender.com/register');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'name': name, 'email': email, 'password': password}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        print('Registration successful: $data');
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Registration successful!')));
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => VerifyEmail(email: email)),
+        );
+      } else {
+        final error = jsonDecode(response.body)['error'] ?? 'Unknown error';
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $error')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Network error: $e')));
+    }
+
     // TODO: API call
   }
 

@@ -1,6 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_module_1/emailVerificationSuccess.dart';
+import 'package:flutter_module_1/login.dart';
+import 'package:http/http.dart' as http;
+
 
 class VerifyEmail extends StatefulWidget {
   final String email;
@@ -14,11 +18,21 @@ class VerifyEmail extends StatefulWidget {
 class _VerifyEmailState extends State<VerifyEmail> {
   int _secondsLeft = 30;
   Timer? _timer;
+  Timer? _verificationCheckTimer;
+  bool _isCheckingVerification = false;
 
   @override
   void initState() {
     super.initState();
     _startCountdown();
+    _startVerificationCheck();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _verificationCheckTimer?.cancel();
+    super.dispose();
   }
 
   void _startCountdown() {
@@ -35,22 +49,89 @@ class _VerifyEmailState extends State<VerifyEmail> {
     });
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
+  void _startVerificationCheck() {
+    // Check immediately first
+    _checkVerificationStatus();
+    
+    // Then set up periodic checking every 4 seconds
+    _verificationCheckTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      _checkVerificationStatus();
+    });
   }
 
-  void _resendEmail() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Verification email resent!')),
-    );
-    _startCountdown();
-    print('-------------------------------------------------------------------- Count down completed');
+  Future<void> _checkVerificationStatus() async {
+    if (_isCheckingVerification) return;
+    
+    setState(() {
+      _isCheckingVerification = true;
+    });
+
+    final url = Uri.parse('https://py-auth.onrender.com/check-verification?email=${widget.email}');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        if (data['isVerified'] == true) {
+          _verificationCheckTimer?.cancel();
+          _navigateToLogin();
+        }
+      }
+    } catch (e) {
+      // Silently handle errors - we'll try again in 4 seconds
+      debugPrint('Verification check error: $e');
+    } finally {
+      setState(() {
+        _isCheckingVerification = false;
+      });
+    }
+  }
+
+  void _navigateToLogin() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => EmailVerificationSuccess()),
+      MaterialPageRoute(
+        builder: (_) => const EmailVerificationSuccess(), 
+      ),
     );
+    
+    // Show success message on the login screen
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Email verified successfully! Please login.')),
+    );
+  }
+
+  Future<void> _resendEmail() async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Sending verification email...')),
+    );
+    _startCountdown();
+
+    final url = Uri.parse('https://py-auth.onrender.com/resend-verification');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': widget.email}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Verification email resent!')),
+        );
+      } else {
+        final error = jsonDecode(response.body)['error'] ?? 'Unknown error';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $error')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Network error: $e')),
+      );
+    }
   }
 
   @override
@@ -80,12 +161,9 @@ class _VerifyEmailState extends State<VerifyEmail> {
               ),
               const SizedBox(height: 15),
 
-              Text(
-                "We’ve sent a verification link to:",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
+              const Text(
+                "We've sent a verification link to:",
+                style: TextStyle(fontSize: 16, color: Colors.grey),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 5),
@@ -103,11 +181,8 @@ class _VerifyEmailState extends State<VerifyEmail> {
 
               const Text(
                 "Please check your inbox and click the link to verify your account. "
-                "If you don’t see the email, check your spam folder.",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black54,
-                ),
+                "If you don't see the email, check your spam folder.",
+                style: TextStyle(fontSize: 14, color: Colors.black54),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
@@ -138,9 +213,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
               const SizedBox(height: 15),
 
               TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+                onPressed: _navigateToLogin,
                 child: const Text(
                   "Back to Login",
                   style: TextStyle(

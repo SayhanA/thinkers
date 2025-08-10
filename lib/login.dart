@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_module_1/LoginForm.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
+
 class MyLogin extends StatefulWidget {
   const MyLogin({super.key});
 
@@ -13,9 +17,35 @@ class _MyLoginState extends State<MyLogin> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
 
-  void _handleLogin(String email, String password) {
-    // Handle login logic here, e.g. call backend or show snackbar
-    print('Email: $email, Password: $password');
+  void _handleLogin(String email, String password) async {
+    final url = Uri.parse(
+      'https://py-auth.onrender.com/login',
+    );
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print('Login successful: $data');
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Login successful!')));
+      } else {
+        final error = jsonDecode(response.body)['error'] ?? 'Unknown error';
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $error')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Network error: $e')));
+    }
   }
 
   @override
@@ -72,14 +102,17 @@ class _MyLoginState extends State<MyLogin> with SingleTickerProviderStateMixin {
 
             const SizedBox(height: 10),
 
-            Padding(padding: const EdgeInsets.fromLTRB(0, 0, 0, 30),child: const Text(
-              'LogIn',
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 30),
+              child: const Text(
+                'LogIn',
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
               ),
-            ),),
+            ),
 
             Padding(
               padding: const EdgeInsets.fromLTRB(30, 0, 30, 10),
@@ -92,10 +125,7 @@ class _MyLoginState extends State<MyLogin> with SingleTickerProviderStateMixin {
                 const Text("Don't have an account? "),
                 GestureDetector(
                   onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/signup',
-                    ); 
+                    Navigator.pushNamed(context, '/signup');
                   },
                   child: const Text(
                     'Sign Up',
