@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_module_1/SignUpForm.dart';
+import 'package:flutter_module_1/verifyEmail.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class Signup extends StatefulWidget {
@@ -36,6 +37,10 @@ class _SignupState extends State<Signup> with SingleTickerProviderStateMixin {
 
   void _handleSignup() {
     print('Name: $name, Email: $email, Password: $password');
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => VerifyEmail(email: email)),
+    );
     // TODO: API call
   }
 
