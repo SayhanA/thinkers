@@ -94,8 +94,8 @@ class _MyLoginState extends State<MyLogin> with SingleTickerProviderStateMixin {
                   onTap: () {
                     Navigator.pushNamed(
                       context,
-                      'signup',
-                    ); // Update with your signup route
+                      '/signup',
+                    ); 
                   },
                   child: const Text(
                     'Sign Up',
