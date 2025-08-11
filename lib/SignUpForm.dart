@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 
 class SignupForm extends StatefulWidget {
   final void Function(String name, String email, String password) onSubmit;
+  final bool isLoading;
 
-  const SignupForm({super.key, required this.onSubmit});
+  const SignupForm({
+    super.key,
+    required this.onSubmit,
+    required this.isLoading,
+  });
 
   @override
   State<SignupForm> createState() => _SignupFormState();
@@ -11,7 +16,6 @@ class SignupForm extends StatefulWidget {
 
 class _SignupFormState extends State<SignupForm> {
   final _formKey = GlobalKey<FormState>();
-
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -20,8 +24,17 @@ class _SignupFormState extends State<SignupForm> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
   void _submit() {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate() && !widget.isLoading) {
       widget.onSubmit(
         _nameController.text.trim(),
         _emailController.text.trim(),
@@ -36,118 +49,48 @@ class _SignupFormState extends State<SignupForm> {
       key: _formKey,
       child: Column(
         children: [
-          // Name
-          TextFormField(
+          _buildTextField(
             controller: _nameController,
-            style: const TextStyle(fontSize: 14),
-            decoration: const InputDecoration(
-              isDense: true,
-              contentPadding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-              labelText: 'Name',
-              prefixIcon: Icon(Icons.person_outline, size: 18),
-              border: UnderlineInputBorder(),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your name';
-              }
-              return null;
-            },
+            label: 'Name',
+            icon: Icons.person_outline,
+            validator: (v) => v!.isEmpty ? 'Please enter your name' : null,
           ),
           const SizedBox(height: 20),
-
-          // Email
-          TextFormField(
+          _buildTextField(
             controller: _emailController,
+            label: 'Email',
+            icon: Icons.email_outlined,
             keyboardType: TextInputType.emailAddress,
-            style: const TextStyle(fontSize: 14),
-            decoration: const InputDecoration(
-              isDense: true,
-              contentPadding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-              labelText: 'Email',
-              prefixIcon: Icon(Icons.email_outlined, size: 18),
-              border: UnderlineInputBorder(),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your email';
-              }
-              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+            validator: (v) {
+              if (v!.isEmpty) return 'Please enter your email';
+              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v)) {
                 return 'Enter a valid email';
               }
               return null;
             },
           ),
           const SizedBox(height: 20),
-
-          // Password
-          TextFormField(
+          _buildPasswordField(
             controller: _passwordController,
+            label: 'Password',
             obscureText: _obscurePassword,
-            style: const TextStyle(fontSize: 14),
-            decoration: InputDecoration(
-              isDense: true,
-              labelText: 'Password',
-              prefixIcon: const Icon(Icons.lock_outline, size: 18),
-              border: const UnderlineInputBorder(),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                  size: 18,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                },
-              ),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your password';
-              }
-              if (value.length < 6) {
-                return 'Password must be at least 6 characters';
-              }
+            toggle: () => setState(() => _obscurePassword = !_obscurePassword),
+            validator: (v) {
+              if (v!.isEmpty) return 'Please enter your password';
+              if (v.length < 6) return 'Password must be at least 6 characters';
               return null;
             },
           ),
           const SizedBox(height: 20),
-
-          // Confirm Password
-          TextFormField(
+          _buildPasswordField(
             controller: _confirmPasswordController,
+            label: 'Confirm Password',
             obscureText: _obscureConfirmPassword,
-            style: const TextStyle(fontSize: 14),
-            decoration: InputDecoration(
-              isDense: true,
-              labelText: 'Confirm Password',
-              prefixIcon: const Icon(Icons.lock_outline, size: 18),
-              border: const UnderlineInputBorder(),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscureConfirmPassword
-                      ? Icons.visibility
-                      : Icons.visibility_off,
-                  size: 18,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _obscureConfirmPassword = !_obscureConfirmPassword;
-                  });
-                },
-              ),
-            ),
-            validator: (value) {
-              if (value != _passwordController.text) {
-                return 'Passwords do not match';
-              }
-              return null;
-            },
+            toggle: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+            validator: (v) =>
+                v != _passwordController.text ? 'Passwords do not match' : null,
           ),
           const SizedBox(height: 20),
-
-          // Submit Button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -157,14 +100,67 @@ class _SignupFormState extends State<SignupForm> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
               ),
-              child: const Text(
-                'Create Account',
-                style: TextStyle(color: Colors.white),
-              ),
+              child: widget.isLoading
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    )
+                  : const Text('Create Account', style: TextStyle(color: Colors.white)),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    required String? Function(String?) validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      style: const TextStyle(fontSize: 14),
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        labelText: label,
+        prefixIcon: Icon(icon, size: 18),
+        border: const UnderlineInputBorder(),
+      ),
+      validator: validator,
+    );
+  }
+
+  Widget _buildPasswordField({
+    required TextEditingController controller,
+    required String label,
+    required bool obscureText,
+    required VoidCallback toggle,
+    required String? Function(String?) validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      style: const TextStyle(fontSize: 14),
+      decoration: InputDecoration(
+        isDense: true,
+        labelText: label,
+        prefixIcon: const Icon(Icons.lock_outline, size: 18),
+        border: const UnderlineInputBorder(),
+        suffixIcon: IconButton(
+          icon: Icon(
+            obscureText ? Icons.visibility : Icons.visibility_off,
+            size: 18,
+          ),
+          onPressed: toggle,
+        ),
+      ),
+      validator: validator,
     );
   }
 }

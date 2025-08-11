@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/home/sayhan/Others/projects/devate/src/flutter/packages/flutter_tools/gradle/src/main/scripts/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/home/sayhan/Android/Sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/home/sayhan/Others/projects/MobileApps/Flutter/flutter_module_1/.android/Flutter/.cxx/RelWithDebInfo/y19256i6/x86_64",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/home/sayhan/Android/Sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/home/sayhan/Others/projects/MobileApps/Flutter/flutter_module_1/.android/Flutter/.cxx/RelWithDebInfo/y19256i6/x86_64",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}

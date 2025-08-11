@@ -4,7 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter/material.dart';
 
 class MyLogin extends StatefulWidget {
   const MyLogin({super.key});
@@ -17,10 +16,12 @@ class _MyLoginState extends State<MyLogin> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
 
+  bool _isLoading = false;
+
   void _handleLogin(String email, String password) async {
-    final url = Uri.parse(
-      'https://py-auth.onrender.com/login',
-    );
+    setState(() => _isLoading = true);
+
+    final url = Uri.parse('https://py-auth.onrender.com/login');
 
     try {
       final response = await http.post(
@@ -32,19 +33,21 @@ class _MyLoginState extends State<MyLogin> with SingleTickerProviderStateMixin {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         print('Login successful: $data');
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Login successful!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login successful!')),
+        );
       } else {
         final error = jsonDecode(response.body)['error'] ?? 'Unknown error';
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $error')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $error')),
+        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Network error: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Network error: $e')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -58,7 +61,6 @@ class _MyLoginState extends State<MyLogin> with SingleTickerProviderStateMixin {
     );
 
     _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
-
     _controller.forward();
   }
 
@@ -72,72 +74,53 @@ class _MyLoginState extends State<MyLogin> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(title: const Text('Login'), backgroundColor: Colors.white, foregroundColor: Colors.black,),
+      appBar: AppBar(
+        title: const Text('Login'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
             SizedBox(
               height: 230,
-              child: Column(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SvgPicture.asset(
+                  'assets/connect.svg',
+                  width: 250,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+              child: LoginForm(
+                onSubmit: _handleLogin,
+                isLoading: _isLoading,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(
-                    height: 230,
-                    width: double.infinity,
-                    child: Center(
-                      child: Container(
-                        margin: const EdgeInsets.only(top: 0),
-                        child: FadeTransition(
-                          opacity: _fadeAnimation,
-                          child: SvgPicture.asset(
-                            'assets/connect.svg',
-                            width: 250,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
+                  const Text("Don't have an account? "),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/signup');
+                    },
+                    child: const Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        color: Color(0xFF6C63FF),
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
                       ),
                     ),
                   ),
                 ],
               ),
-            ),
-
-            // const SizedBox(height: 10),
-
-            // Padding(
-            //   padding: const EdgeInsets.fromLTRB(0, 0, 0, 30),
-            //   child: const Text(
-            //     'LogIn',
-            //     style: TextStyle(
-            //       fontSize: 30,
-            //       fontWeight: FontWeight.bold,
-            //       color: Colors.black87,
-            //     ),
-            //   ),
-            // ),
-
-            Padding(
-              padding: const EdgeInsets.fromLTRB(30, 0, 30, 10),
-              child: LoginForm(onSubmit: _handleLogin),
-            ),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Don't have an account? "),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushNamed(context, '/signup');
-                  },
-                  child: const Text(
-                    'Sign Up',
-                    style: TextStyle(
-                      color: Color(0xFF6C63FF),
-                      fontWeight: FontWeight.bold,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
-              ],
             ),
           ],
         ),

@@ -1,0 +1,2 @@
+/home/sayhan/Others/projects/MobileApps/Flutter/flutter_module_1/.android/Flutter/.cxx/RelWithDebInfo/y19256i6/arm64-v8a/CMakeFiles/edit_cache.dir
+/home/sayhan/Others/projects/MobileApps/Flutter/flutter_module_1/.android/Flutter/.cxx/RelWithDebInfo/y19256i6/arm64-v8a/CMakeFiles/rebuild_cache.dir
