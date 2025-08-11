@@ -3,6 +3,7 @@ def flutterPluginVersion = "managed"
 apply plugin: "com.android.application"
 
 android {
+    ndkVersion = "27.0.12077973"
     namespace = "com.example.flutter_module_1.host"
     compileSdk = 35
 

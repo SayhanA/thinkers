@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_module_1/LoginForm.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'auth_service.dart';
 
 class MyLogin extends StatefulWidget {
   const MyLogin({super.key});
@@ -21,45 +19,32 @@ class _MyLoginState extends State<MyLogin> with SingleTickerProviderStateMixin {
   void _handleLogin(String email, String password) async {
     setState(() => _isLoading = true);
 
-    final url = Uri.parse('https://py-auth.onrender.com/login');
+    final result = await AuthService.login(email, password);
 
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password}),
-      );
+    if (!mounted) return; 
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        print('Login successful: $data');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login successful!')),
-        );
-      } else {
-        final error = jsonDecode(response.body)['error'] ?? 'Unknown error';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $error')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Network error: $e')),
-      );
-    } finally {
-      setState(() => _isLoading = false);
+    if (result.success) {
+      print('Login data: ${result.data}');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result.message)));
+      Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${result.message}')));
     }
+
+    setState(() => _isLoading = false);
   }
 
   @override
   void initState() {
     super.initState();
-
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
     );
-
     _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
   }
@@ -95,10 +80,7 @@ class _MyLoginState extends State<MyLogin> with SingleTickerProviderStateMixin {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(30, 0, 30, 10),
-              child: LoginForm(
-                onSubmit: _handleLogin,
-                isLoading: _isLoading,
-              ),
+              child: LoginForm(onSubmit: _handleLogin, isLoading: _isLoading),
             ),
             Padding(
               padding: const EdgeInsets.only(bottom: 20),
